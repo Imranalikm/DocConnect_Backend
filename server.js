@@ -6,7 +6,9 @@ import cookieParser from 'cookie-parser';
 import dbConnect from './config/dbConnect.js';
 import userAuthRouter from './routers/userAuthRouter.js'
 import adminAuthRouter from './routers/adminAuthRouter.js'
-
+import adminRouter from './routers/adminRouter.js'
+import verifyAdmin from './middlewares/verifyAdmin.js'
+import hospitalAuthRouter from './routers/hospitalAuthRouter.js'
 
 const app = express();
 
@@ -26,7 +28,8 @@ dbConnect();
 app.get("/", (req, res)=>res.send("app running successfully..."))
 app.use("/user/auth/", userAuthRouter)
 app.use("/admin/auth/", adminAuthRouter)
-
+app.use("/admin/", verifyAdmin, adminRouter)
+app.use("/hospital/auth/", hospitalAuthRouter)
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
