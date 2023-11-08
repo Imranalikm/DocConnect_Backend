@@ -89,6 +89,7 @@ export async function userRegisterVerify(req, res) {
         }
 
         const verifiedTempToken = jwt.verify(tempToken, process.env.JWT_SECRET_KEY);
+        console.log(verifiedTempToken)
         let otpHash = crypto.createHmac('sha256', process.env.OTP_SECRET)
             .update(otp.toString())
             .digest('hex');
@@ -150,88 +151,40 @@ export const userLogout = async (req, res) => {
     }).json({ message: "logged out", error: false });
 }
 
-export async function userForgot(req, res) {
-    try {
-        const { email } = req.body;
-        const user = await UserModel.findOne({ email });
-        if (!user) {
-            return res.json({ err: true, message: "User not found" })
-        }
-        let otp = Math.ceil(Math.random() * 1000000)
-        let otpHash = crypto.createHmac('sha256', process.env.OTP_SECRET)
-            .update(otp.toString())
-            .digest('hex');
-        let otpSent = await sentOTP(email, otp)
-        const token = jwt.sign(
-            {
-                otp: otpHash
-            },
-            process.env.JWT_SECRET_KEY
-        )
-        return res.cookie("tempToken", token, {
-            httpOnly: true,
-            secure: true,
-            maxAge: 1000 * 60 * 10,
-            sameSite: "none",
-        }).json({ err: false, token })
-    }
-    catch (err) {
-        console.log(err)
-        res.json({ err: true, error: err,tempToken, message: "something went wrong" })
-    }
-}
-export async function verifyForgotOtp(req, res) {
-    try {
-        const { otp } = req.body;
-        const tempToken = req.cookies.tempToken;
-
-        if (!tempToken) {
-            return res.json({ err: true, message: "OTP Session Timed Out" });
-        }
-
-        const verifiedTempToken = jwt.verify(tempToken, process.env.JWT_SECRET_KEY);
-        let otpHash = crypto.createHmac('sha256', process.env.OTP_SECRET)
-            .update(otp.toString())
-            .digest('hex');
-        if (otpHash != verifiedTempToken.otp) {
-            return res.json({ err: true, message: "Invalid OTP" });
-        }
-        return res.json({ err: false })
-    }
-    catch (err) {
-        console.log(err)
-        res.json({ error: err, err: true, message: "something went wrong" })
-    }
-}
-
-export async function resetUserPassword(req, res) {
-    try {
-        const { email, password, otp } = req.body;
-        const tempToken = req.cookies.tempToken;
-
-        if (!tempToken) {
-            return res.json({ err: true, message: "OTP Session Timed Out" });
-        }
-
-        const verifiedTempToken = jwt.verify(tempToken, process.env.JWT_SECRET_KEY);
-        let otpHash = crypto.createHmac('sha256', process.env.OTP_SECRET)
-            .update(otp.toString())
-            .digest('hex');
-        if (otpHash != verifiedTempToken.otp) {
-            return res.json({ err: true, message: "Invalid OTP" });
-        }
-        const hashPassword = bcrypt.hashSync(password, salt);
 
 
-        await UserModel.updateOne({ email }, {
-            $set: {
-                password: hashPassword
-            }
-        })
-        return res.json({ err: false })
-    }
-    catch (err) {
-        console.log(err)
-        res.json({ error: err, err: true, message: "something went wrong" })
-    }
+
+export async function resendOTP(req, res) {
+  try {
+    console.log("asdfghasdfgasdfg")
+    const { email } = req.body;
+    const user = await UserModel.findOne({ email });
+    console.log(user);
+    
+     console.log("0000000")
+    let otp = Math.ceil(Math.random() * 1000000);
+    console.log(otp);
+    let otpHash = crypto.createHmac('sha256', process.env.OTP_SECRET)
+      .update(otp.toString())
+      .digest('hex');
+
+    let otpSent = await sentOTP(email, otp);
+    
+    const token = jwt.sign(
+      {
+        otp: otpHash
+      },
+      process.env.JWT_SECRET_KEY
+    );
+
+    return res.cookie("tempToken", token, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 1000 * 60 * 10,
+      sameSite: "none",
+    }).json({ err: false, token });
+  } catch (err) {
+    console.log(err);
+    res.json({ err: true, error: err, message: "Something went wrong" });
+  }
 }
