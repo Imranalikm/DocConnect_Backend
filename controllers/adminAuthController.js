@@ -36,6 +36,9 @@ export async function adminLogin(req, res) {
 }
 
 export const adminLogout = async (req, res) => {
+
+    const adminToken = req.cookies.adminToken
+    console.log(adminToken);
     res.cookie("adminToken", "", {
         httpOnly: true,
         expires: new Date(0),
