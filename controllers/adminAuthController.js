@@ -60,7 +60,7 @@ export const checkAdminLoggedIn = async (req, res) => {
             return res.json({ loggedIn: false });
         }
         return res.json({ admin, loggedIn: true });
-    } catch (err) {
+    } catch (err) { 
         res.json({ loggedIn: false, error: err });
     }
 }

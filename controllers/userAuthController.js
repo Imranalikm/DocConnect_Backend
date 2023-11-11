@@ -54,7 +54,7 @@ export async function userRegister(req, res) {
         let otpHash = crypto.createHmac('sha256', process.env.OTP_SECRET)
             .update(otp.toString())
             .digest('hex');
-        console.log(otpHash)
+        
         let otpSent = await sentOTP(email, otp)
         console.log(otpSent);
         const token = jwt.sign(
@@ -89,7 +89,7 @@ export async function userRegisterVerify(req, res) {
         }
 
         const verifiedTempToken = jwt.verify(tempToken, process.env.JWT_SECRET_KEY);
-        console.log(verifiedTempToken)
+       
         let otpHash = crypto.createHmac('sha256', process.env.OTP_SECRET)
             .update(otp.toString())
             .digest('hex');
@@ -156,12 +156,12 @@ export const userLogout = async (req, res) => {
 
 export async function resendOTP(req, res) {
   try {
-    console.log("asdfghasdfgasdfg")
+    // console.log("asdfghasdfgasdfg")
     const { email } = req.body;
-    const user = await UserModel.findOne({ email });
-    console.log(user);
+    // const user = await UserModel.findOne({ email });
+    // console.log(user);
     
-     console.log("0000000")
+    //  console.log("0000000")
     let otp = Math.ceil(Math.random() * 1000000);
     console.log(otp);
     let otpHash = crypto.createHmac('sha256', process.env.OTP_SECRET)
