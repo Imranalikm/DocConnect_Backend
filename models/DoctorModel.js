@@ -46,8 +46,8 @@ const DoctorSchema = new mongoose.Schema({
     image :{
         type:Object,
         default:{
-            url:"https://thumbs.dreamstime.com/b/default-placeholder-doctor-half-length-portrait-default-placeholder-doctor-half-length-portrait-photo-avatar-gray-color-113631373.jpg",
-            secure_url:"https://thumbs.dreamstime.com/b/default-placeholder-doctor-half-length-portrait-default-placeholder-doctor-half-length-portrait-photo-avatar-gray-color-113631373.jpg"
+            url:"https://1.bp.blogspot.com/-M5g8uvjXrfw/XzZ8-FYWvmI/AAAAAAAAADM/i5hA4ARK23Yvil7j55QTZvTj3_ekVcK6QCLcBGAsYHQ/s465/index_03.jpg",
+            secure_url:"https://1.bp.blogspot.com/-M5g8uvjXrfw/XzZ8-FYWvmI/AAAAAAAAADM/i5hA4ARK23Yvil7j55QTZvTj3_ekVcK6QCLcBGAsYHQ/s465/index_03.jpg"
         }
     },
     block:{

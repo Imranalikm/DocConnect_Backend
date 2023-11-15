@@ -1,10 +1,10 @@
 import cloudinary from '../config/cloudinary.js'
 import DoctorModel from "../models/DoctorModel.js";
 import bcrypt from "bcryptjs"
-import HospitalModel from "../models/HospitalModel.js"
+import DepartmentModel from '../models/DepartmentModel.js';
+import ScheduleModel from '../models/ScheduleModel.js'
 
-
-
+var salt = bcrypt.genSaltSync(10);
 export async function getDoctors(req, res) {
     try {
         const name = req.query.name ?? ""
@@ -63,4 +63,142 @@ export async function unBlockDoctor(req, res) {
         res.json({ err: true, error: err, message: "Something Went Wrong" })
     }
 
+}
+export async function addDepartment(req, res) {
+    try {
+        const department = await DepartmentModel.findOne({
+            name:req.body.department.trim().toLowerCase(),
+            hospitalId:req.hospital._id
+        })
+        if(department){
+            return req.json({
+                err:true, message:"Department Already Exist"
+            })
+        }
+        await DepartmentModel.updateOne({ name: req.body.department.trim().toLowerCase() }, { $set: { name: req.body.department.trim().toLowerCase() }, $addToSet: { hospitalId: req.hospital._id } }, { upsert: true })
+        res.json({ err: false })
+    }
+    catch (err) {
+        res.json({ message: "somrthing went wrong", error: err, err: true })
+    }
+}
+
+export async function editDepartment(req, res) {
+    try {
+        const department = await DepartmentModel.findOne({
+            name:req.body.department.trim().toLowerCase(),
+            hospitalId:req.hospital._id
+        })
+        if(department){
+            return req.json({
+                err:true, message:"Department Already Exist"
+            })
+        }
+        await DepartmentModel.findByIdAndUpdate(req.body.id, { $set: { name: req.body.department.trim().toLowerCase() } })
+        res.json({ err: false })
+    }
+    catch (err) {
+        res.json({ message: "somrthing went wrong", error: err, err: true })
+    }
+}
+
+
+export async function getDepartments(req, res) {
+    try {
+        const name = req.query.name ?? ""
+        let departments = await DepartmentModel.find({ hospitalId: req.hospital._id, name: new RegExp(name, 'i') }).lean()
+        res.json({ err: false, departments })
+    }
+    catch (err) {
+        res.json({ message: "somrthing went wrong", error: err, err: true })
+    }
+}
+
+export async function updateSchedule(req, res) {
+    try {
+        // res.json(req.body)
+        const { doctorId } = req.body;
+        await ScheduleModel.updateOne({ doctorId }, {
+            $set: {
+                ...req.body
+            }
+        }, { upsert: true })
+
+        res.json({ err: false })
+
+    } catch (err) {
+        console.log(err)
+        res.json({ err: true, error: err, message: "Something Went Wrong" })
+    }
+
+}
+
+export async function getSchedule(req, res) {
+    try {
+        const { doctorId } = req.params;
+        const schedule = await ScheduleModel.findOne({ doctorId });
+        if (schedule) {
+            return res.json({ err: false, schedule })
+        } else {
+            return res.json({
+                err: false, schedule: {
+                    mon: [],
+                    tue: [],
+                    wed: [],
+                    thu: [],
+                    fri: [],
+                    sat: [],
+                    sun: []
+                }
+            })
+        }
+    } catch (err) {
+        console.log(err)
+        res.json({ err: true, error: err, message: "Something Went Wrong" })
+    }
+}
+
+export async function getHospitalProfile(req, res) {
+    try {
+
+        
+      
+        const departments = await DepartmentModel.find({ hospitalId: req.hospital._id }, { password: 0 });
+        res.json({
+            err: false, hospital: req.hospital, departments,
+            rating, reviews
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ err: true, error, message: "something went wrong" })
+    }
+}
+
+export async function editHospitalProfile(req, res) {
+    try {
+        const { image, name, about, address, place, mobile } = req.body;
+        if (image) {
+            const data = await cloudinary.uploader.upload(image, {
+                folder: 'docConnect'
+            })
+            await HospitalModel.findByIdAndUpdate(req.hospital._id, {
+                $set: {
+                    image: data,
+                    name, about, address, place, mobile
+                }
+            })
+        } else {
+            await HospitalModel.findByIdAndUpdate(req.hospital._id, {
+                $set: {
+                    name, about, address, place, mobile
+                }
+            })
+        }
+        res.json({ result: data, err: false })
+
+    } catch (error) {
+        console.log(error);
+        res.json({ err: true, error, message: "something went wrong" })
+    }
 }
