@@ -2,6 +2,9 @@ import DoctorModel from '../models/DoctorModel.js';
 import DepartmentModel from '../models/DepartmentModel.js';
 import HospitalModel from '../models/HospitalModel.js';
 import ScheduleModel from '../models/ScheduleModel.js';  
+import minuteDiff from '../helpers/minuteDifference.js';
+import BookingModel from '../models/BookingModel.js';
+
 
 export async function getDoctor(req, res) {
     try {
@@ -127,4 +130,56 @@ export async function getHospital(req, res) {
         console.log(err)
         res.json({ err: true, error: err })
     }
+}
+
+export async function checkTimeSlot(req, res) {
+    try {
+
+        const { schedule, date } = req.body;
+        let scheduleArr = []
+        for (let item of schedule) {
+            const timeSlot = new Date(item.startDate).toLocaleTimeString('en-US') + " - " + new Date(schedule.endDate).toLocaleTimeString('en-US');
+            const bookingCount = await BookingModel.find({
+                $and: [
+                    { date: { $gt: new Date(new Date(new Date(date).setHours(0, 0, 0, 0)).setDate(new Date(date).getDate())) } },
+                    { date: { $lt: new Date(new Date(new Date(date).setHours(0, 0, 0, 0)).setDate(new Date(date).getDate() + 1)) } },
+                    { timeSlot: new Date(item.startDate).toLocaleTimeString('en-US') + " - " + new Date(item.endDate).toLocaleTimeString('en-US') }
+                ]
+            }).count();
+            const minuteDifference = minuteDiff(item.endDate, item.startDate);
+
+
+            let minutesPerPatient = Number(minuteDifference) / Number(item.slot)
+            minutesPerPatient;
+
+            const totalMinutes = minutesPerPatient * bookingCount;
+
+
+            const time = new Date(new Date(item.startDate).setMinutes(new Date(item.startDate).getMinutes() + totalMinutes))
+            if (bookingCount < Number(item.slot)) {
+                scheduleArr.push({
+                    startDate: item.startDate,
+                    endDate: item.endDate,
+                    slot: item.slot,
+                    time: time,
+                })
+
+            }
+        }
+        if (scheduleArr[0]) {
+            return res.json({
+                err: false,
+                result: {
+                    schedule: scheduleArr,
+                    date
+                }
+            })
+        }
+        return res.json({ err: true })
+    } catch (error) {
+        console.log(error)
+        return res.json({ error, err: true, message: "something went wrong" })
+    }
+
+
 }

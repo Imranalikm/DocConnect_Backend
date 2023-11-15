@@ -2,9 +2,11 @@ import cloudinary from '../config/cloudinary.js'
 import DoctorModel from "../models/DoctorModel.js";
 import bcrypt from "bcryptjs"
 import DepartmentModel from '../models/DepartmentModel.js';
-import ScheduleModel from '../models/ScheduleModel.js'
+import ScheduleModel from '../models/ScheduleModel.js';
+import HospitalModel from '../models/HospitalModel.js';
 
 var salt = bcrypt.genSaltSync(10);
+
 export async function getDoctors(req, res) {
     try {
         const name = req.query.name ?? ""
@@ -165,8 +167,8 @@ export async function getHospitalProfile(req, res) {
       
         const departments = await DepartmentModel.find({ hospitalId: req.hospital._id }, { password: 0 });
         res.json({
-            err: false, hospital: req.hospital, departments,
-            rating, reviews
+            err: false, hospital: req.hospital, departments
+        
         })
 
     } catch (error) {
