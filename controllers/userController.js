@@ -77,9 +77,9 @@ export async function getAllHospitals(req, res) {
         let hospitals = []
         if (departmentId) {
             let department = await DepartmentModel.findOne({ _id: departmentId });
-            hospitals = await HospitalModel.find({ active: true, rejected: false,name: new RegExp(name, 'i'), _id: { $in: department.hospitalId } }, { password: 0 }).lean()
+            hospitals = await HospitalModel.find({ block: false, rejected: false,active:true,name: new RegExp(name, 'i'), _id: { $in: department.hospitalId } }, { password: 0 }).lean()
         } else {
-            hospitals = await HospitalModel.find({active: true, rejected: false, name: new RegExp(name, 'i') }, { password: 0 }).lean()
+            hospitals = await HospitalModel.find({block: false, rejected: false, active:true,name: new RegExp(name, 'i') }, { password: 0 }).lean()
         }
        
 
