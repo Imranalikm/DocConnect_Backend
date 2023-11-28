@@ -13,6 +13,10 @@ import hospitalAuthRouter from './routers/hospitalAuthRouter.js'
 import hospitalRouter from './routers/hospitalRouter.js'
 import verifyHospital from './middlewares/verifyHospital.js';
 import verifyUser from './middlewares/verifyUser.js'
+import doctorAuthRouter from './routers/doctorAuthRouter.js'
+import doctorRouter from './routers/doctorRouter.js'
+import verifyDoctor from './middlewares/verifyDoctor.js';
+
 const app = express();
 
 app.use(express.json({ limit: '50mb' }))
@@ -35,6 +39,8 @@ app.use("/admin/", verifyAdmin, adminRouter)
 app.use("/hospital/auth/", hospitalAuthRouter)
 app.use("/hospital/", verifyHospital, hospitalRouter)
 app.use("/user/",verifyUser, userRouter)
+app.use("/doctor/auth/",doctorAuthRouter)
+app.use("/doctor/", verifyDoctor, doctorRouter)
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);

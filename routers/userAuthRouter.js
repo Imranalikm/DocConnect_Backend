@@ -1,5 +1,5 @@
 import express from 'express';
-import { checkUserLoggedIn, userLogin, userLogout, userRegister, userRegisterVerify,resendOTP } from '../controllers/userAuthController.js';
+import { checkUserLoggedIn, userLogin, userLogout, userRegister, userRegisterVerify,resendOTP ,googleAuthRedirect,verifyGAuth} from '../controllers/userAuthController.js';
 
 const router=express.Router();
 
@@ -9,7 +9,8 @@ router.post("/register/verify", userRegisterVerify)
 router.post("/register/verify/resend",resendOTP)
 router.get("/check", checkUserLoggedIn)
 router.get("/logout", userLogout)
-
+router.get( '/google/callback', googleAuthRedirect );
+router.get( '/google/verify', verifyGAuth );
 
 
 

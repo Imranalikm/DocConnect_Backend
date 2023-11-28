@@ -41,6 +41,10 @@ const schema = new mongoose.Schema({
         type:Number,
         default:""
     },
+    online:{
+        type:Boolean,
+        default:false
+    },
     token:{
         type:String,
         default: Math.ceil(Math.random() *100000)

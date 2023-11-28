@@ -8,7 +8,14 @@ const schema = new mongoose.Schema({
     hospitalId:{
         type: Array,
         required:true
-    }
+    },
+    image:{
+        type:Object,
+        default:{
+            url:"https://bharajhospital.in/wp-content/uploads/2015/11/doctor-placeholder-500x500.jpg",
+            secure_url:"https://bharajhospital.in/wp-content/uploads/2015/11/doctor-placeholder-500x500.jpg"
+        }
+    },
 })
 
 const DepartmentModel=mongoose.model("Department", schema)

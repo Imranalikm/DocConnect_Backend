@@ -66,24 +66,68 @@ export async function unBlockDoctor(req, res) {
     }
 
 }
+// export async function addDepartment(req, res) {
+//     try {
+//         const department = await DepartmentModel.findOne({
+//             name:req.body.department.trim().toLowerCase(),
+//             hospitalId:req.hospital._id
+//         })
+//         if(department){
+//             return req.json({
+//                 err:true, message:"Department Already Exist"
+//             })
+//         }
+//         await DepartmentModel.updateOne({ name: req.body.department.trim() }, { $set: { name: req.body.department.trim()}, $addToSet: { hospitalId: req.hospital._id } }, { upsert: true })
+//         res.json({ err: false })
+//     }
+//     catch (err) {
+//         res.json({ message: "somrthing went wrong", error: err, err: true })
+//     }
+// }
 export async function addDepartment(req, res) {
     try {
+        console.log('000000000000000000000000000');
+
         const department = await DepartmentModel.findOne({
-            name:req.body.department.trim().toLowerCase(),
-            hospitalId:req.hospital._id
-        })
-        if(department){
-            return req.json({
-                err:true, message:"Department Already Exist"
-            })
+            name: req.body.department.trim().toLowerCase(),
+            hospitalId: req.hospital._id,
+        });
+
+        if (department) {
+            console.log('Department Already Exist');
+            return res.json({ err: true, message: "Department Already Exist" });
         }
-        await DepartmentModel.updateOne({ name: req.body.department.trim().toLowerCase() }, { $set: { name: req.body.department.trim().toLowerCase() }, $addToSet: { hospitalId: req.hospital._id } }, { upsert: true })
-        res.json({ err: false })
-    }
-    catch (err) {
-        res.json({ message: "somrthing went wrong", error: err, err: true })
+
+        const { base64Picture } = req.body;
+        console.log('Base64 Picture:', base64Picture);
+
+        if (base64Picture) {
+            const data = await cloudinary.uploader.upload(base64Picture, {
+                folder: 'docConnect'
+            });
+            console.log('Cloudinary Upload Result:', data);
+
+            await DepartmentModel.updateOne(
+                { name: req.body.department.trim() },
+                { $set: { name: req.body.department.trim(), image: data }, $addToSet: { hospitalId: req.hospital._id } },
+                { upsert: true }
+            );
+        } else {
+            await DepartmentModel.updateOne(
+                { name: req.body.department.trim() },
+                { $set: { name: req.body.department.trim() }, $addToSet: { hospitalId: req.hospital._id } },
+                { upsert: true }
+            );
+        }
+
+        console.log('Department added successfully');
+        res.json({ err: false });
+    } catch (err) {
+        console.error('Error:', err);
+        res.json({ message: "Something went wrong", error: err, err: true });
     }
 }
+
 
 export async function editDepartment(req, res) {
     try {
@@ -118,7 +162,7 @@ export async function getDepartments(req, res) {
 
 export async function updateSchedule(req, res) {
     try {
-        // res.json(req.body)
+        
         const { doctorId } = req.body;
         await ScheduleModel.updateOne({ doctorId }, {
             $set: {
@@ -178,10 +222,12 @@ export async function getHospitalProfile(req, res) {
 }
 
 export async function editHospitalProfile(req, res) {
+    let data;
     try {
-        const { image, name, about, address, place, mobile } = req.body;
+        const { image, name, about, address, place, mobile } = req?.body;
+            
         if (image) {
-            const data = await cloudinary.uploader.upload(image, {
+             data = await cloudinary.uploader.upload(image, {
                 folder: 'docConnect'
             })
             await HospitalModel.findByIdAndUpdate(req.hospital._id, {

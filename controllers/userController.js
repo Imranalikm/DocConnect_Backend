@@ -4,15 +4,41 @@ import HospitalModel from '../models/HospitalModel.js';
 import ScheduleModel from '../models/ScheduleModel.js';  
 import minuteDiff from '../helpers/minuteDifference.js';
 import BookingModel from '../models/BookingModel.js';
+import UserModel from '../models/UserModel.js';
+import cloudinary from '../config/cloudinary.js'
+import EMRModel from '../models/EMRModel.js';
+import FeedbackModel from '../models/FeedbackModel.js';
+
+
 
 
 export async function getDoctor(req, res) {
     try {
-       
+        const booking = await EMRModel.findOne({
+            doctorId: req.params.id,
+            userId: req.user._id
+        })
+        let totalRating = 0;
+
+        const reviews = await FeedbackModel.find({
+            doctorId: req.params.id
+        }).populate('userId').lean()
+
+        const review = await FeedbackModel.findOne({
+            doctorId: req.params.id,
+            userId: req.user._id
+        }).lean()
+
+        for (let item of reviews) {
+            totalRating += item.rating
+        }
+        let reviewCount = reviews.length != 0 ? reviews.length : 1;
+        const rating = totalRating / reviewCount;
         const doctor = await DoctorModel.findById(req.params.id, { password: 0 }).populate('department').populate('hospitalId', 'name');
-        
         res.json({
-            err: false, doctor
+            err: false, doctor,
+            reviewAccess: booking ? true : false,
+            rating, reviews, review
         })
 
     } catch (err) {
@@ -182,4 +208,76 @@ export async function checkTimeSlot(req, res) {
     }
 
 
+}
+
+
+export async function getUserBookings(req, res) {
+    try {
+        
+        let bookings = []
+        if (req.query.filter === 'completed') {
+            bookings = await BookingModel.find({
+                userId: req.user._id,
+                status: "completed"
+            }).populate('doctorId').sort({ _id: -1 })
+        }
+        else if (req.query.filter === 'upcoming') {
+            bookings = await BookingModel.find({
+                userId: req.user._id,
+                status: 'upcoming'
+            }).populate('doctorId').sort({ _id: -1 })
+        }
+        else {
+            bookings = await BookingModel.find({
+                userId: req.user._id
+            }).populate('doctorId').sort({ _id: -1 })
+        }
+        return res.json({ err: false, bookings })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ err: true, error, message: "something went wrong" })
+    }
+}
+
+
+export async function addDoctorFeedback(req, res) {
+    try {
+        const { doctorId, rating, review } = req.body;
+        await FeedbackModel.updateOne({ userId: req.user._id, doctorId }, {
+            rating, review
+        }, { upsert: true })
+        return res.json({ err: false })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ err: true, error, message: "something went wrong" })
+    }
+}
+
+
+export async function addHospitalFeedback(req, res) {
+    try {
+        const { hospitalId, rating, review } = req.body;
+        await FeedbackModel.updateOne({ userId: req.user._id, hospitalId }, {
+            rating, review
+        }, { upsert: true })
+        return res.json({ err: false })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ err: true, error, message: "something went wrong" })
+    }
+}
+
+
+export async function getUserEMR(req, res) {
+    try {
+        const {bookingId}=req.params;
+        const emr= await EMRModel.findOne({bookingId}).populate('doctorId')
+        res.json({err:false, emr})
+        
+    } catch (err) {
+        res.json({ err: true, error: err, message: "Something Went Wrong" })
+    }
 }

@@ -42,7 +42,8 @@ export async function verifyPayment(req, res) {
             hospitalId,
             fees,
             name,
-            age
+            age,
+            online
         } = req.body;
 
         let body = response.razorpay_order_id + "|" + response.razorpay_payment_id;
@@ -55,7 +56,7 @@ export async function verifyPayment(req, res) {
             const doctor = await DoctorModel.findById(doctorId);
             const booking= await BookingModel.create({
                 date, timeSlot, time, payment:response, doctorId, hospitalId:doctor.hospitalId,fees,
-                userId:req.user._id, patientName:name, age,
+                userId:req.user._id, patientName:name, age,online,
                 token: Math.ceil(Math.random()*100000)
             })
             return res.json({

@@ -12,6 +12,7 @@ const verifyUser = async (req, res, next) => {
         if (!user) {
             return res.json({ loggedIn: false });
         }
+      
         req.user=user;
         next()
     } catch (err) {
