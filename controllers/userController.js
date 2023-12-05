@@ -326,3 +326,23 @@ export async function getUserEMR(req, res) {
         res.json({ err: true, error: err, message: "Something Went Wrong" })
     }
 }
+
+export async function cancelBooking(req, res) {
+    try {
+        const { bookingId } = req.body;
+        await BookingModel.updateOne({
+            _id: bookingId
+        }, {
+            $set: {
+                status: "refund processing",
+                time: new Date(new Date(0).setFullYear(0))
+            }
+        })
+        return res.json({
+            err: false
+        })
+    } catch (error) {
+        res.json({ err: true, error, message: "something went wrong" })
+    }
+}
+
