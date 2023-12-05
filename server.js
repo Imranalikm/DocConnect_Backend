@@ -30,8 +30,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: { 
-    origin: ["*"],
-    
+    origin: ["http://localhost:3001"],  
   },
 });
 let activeUsers={}
@@ -64,6 +63,6 @@ app.use("/doctor/chat",verifyDoctor, doctorChatRouter)
 app.use("/message",verifyUser, messageRouter)
 app.use("/doctor/message/",verifyDoctor, messageRouter)
 
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
