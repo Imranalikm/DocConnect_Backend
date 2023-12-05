@@ -346,3 +346,116 @@ export async function cancelBooking(req, res) {
     }
 }
 
+export async function getTop3Doctors(req, res) {
+    try {
+        let doctors = await FeedbackModel.aggregate([
+            {
+                $group: {
+                    _id: "$doctorId",
+                    totalRating: { $avg: "$rating" }
+                }
+            },
+            {
+                $match:{
+                    _id:{$ne:null}
+                }
+            },
+            {
+                $lookup:{
+                    from:"doctors",
+                    localField:"_id",
+                    foreignField:"_id",
+                    as:"doctor"
+                }
+            },
+            {
+                $sort:{
+                    totalRating:1
+                }
+            },
+            {
+                $limit:3
+            }
+        ])
+        doctors= doctors.map(item=>{
+            return item.doctor[0]
+        })
+        const ratingData = await FeedbackModel.aggregate([
+            {
+                $group:{
+                    _id:"$doctorId",
+                    rating:{$avg:"$rating"}
+                }
+            }
+        ])
+
+        const rating = {}
+        
+        ratingData.map((item)=>{
+            if(item._id!==null){
+                rating[item._id.valueOf()]=item.rating
+            }
+        })
+        return res.json({err:false, doctors, rating})
+    } catch (error) {
+        console.log(error)
+        res.json({ err: true, message: "something went wrong", error })
+    }
+}
+
+export async function getTop3Hospitals(req, res) {
+    try {
+        let hospitals = await FeedbackModel.aggregate([
+            {
+                $group: {
+                    _id: "$hospitalId",
+                    totalRating: { $avg: "$rating" }
+                }
+            },
+            {
+                $match:{
+                    _id:{$ne:null}
+                }
+            },
+            {
+                $lookup:{
+                    from:"hospitals",
+                    localField:"_id",
+                    foreignField:"_id",
+                    as:"hospital"
+                }
+            },
+            {
+                $sort:{
+                    totalRating:1
+                }
+            },
+            {
+                $limit:3
+            }
+        ])
+        hospitals= hospitals.map(item=>{
+            return item.hospital[0]
+        })
+        const ratingData = await FeedbackModel.aggregate([
+            {
+                $group:{
+                    _id:"$hospitalId",
+                    rating:{$avg:"$rating"}
+                }
+            }
+        ])
+
+        const rating = {}
+        
+        ratingData.map((item)=>{
+            if(item._id!==null){
+                rating[item._id.valueOf()]=item.rating
+            }
+        })
+        return res.json({err:false, hospitals, rating})
+    } catch (error) {
+        console.log(error)
+        res.json({ err: true, message: "something went wrong", error })
+    }
+}
