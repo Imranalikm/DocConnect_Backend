@@ -2,6 +2,7 @@ import 'dotenv/config';
 import  express  from 'express';
 import path from "path";
 import cors from 'cors';
+import http from "http"
 import cookieParser from 'cookie-parser';
 import dbConnect from './config/dbConnect.js';
 import userAuthRouter from './routers/userAuthRouter.js'
@@ -16,8 +17,25 @@ import verifyUser from './middlewares/verifyUser.js'
 import doctorAuthRouter from './routers/doctorAuthRouter.js'
 import doctorRouter from './routers/doctorRouter.js'
 import verifyDoctor from './middlewares/verifyDoctor.js';
+import { Server } from "socket.io";
+import socketConnect from './config/socketConnect.js'
+import chatRouter from './routers/chatRouter.js'
+import messageRouter from './routers/messageRouter.js'
+import doctorChatRouter from './routers/doctorChatRouter.js'
 
 const app = express();
+
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: { 
+    origin: ["*"],
+    
+  },
+});
+let activeUsers={}
+socketConnect(io, activeUsers)
 
 app.use(express.json({ limit: '50mb' }))
 app.use(cookieParser());
@@ -41,6 +59,10 @@ app.use("/hospital/", verifyHospital, hospitalRouter)
 app.use("/user/",verifyUser, userRouter)
 app.use("/doctor/auth/",doctorAuthRouter)
 app.use("/doctor/", verifyDoctor, doctorRouter)
+app.use("/chat",verifyUser, chatRouter)
+app.use("/doctor/chat",verifyDoctor, doctorChatRouter)
+app.use("/message",verifyUser, messageRouter)
+app.use("/doctor/message/",verifyDoctor, messageRouter)
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);

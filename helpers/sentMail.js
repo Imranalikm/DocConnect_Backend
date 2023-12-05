@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer'
 
-export default function sentMail(email, message1, message2){
+export default function sentMail(email, message1, message2,message3){
     return new Promise((resolve, reject)=>{
         let transporter = nodemailer.createTransport({
             host: "smtp.gmail.com",
@@ -20,6 +20,7 @@ export default function sentMail(email, message1, message2){
               <h1>DocConnect</h1>
                 <h2>${message1}</h2>
                 <h3>${message2}</h3>
+                <a href="${message3}" className='btn btn-danger' >Join the meet</a>
               `,
             }
         

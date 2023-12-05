@@ -14,7 +14,8 @@ export async function getUsers(req, res) {
 
   export async function blockUser(req, res) {
     try {
-      await UserModel.findByIdAndUpdate(req.body.id, {
+      const {id} = req.body
+      await UserModel.findByIdAndUpdate(id, {
         $set: { block: true },
       }).lean();
       res.json({ err: false });
@@ -23,6 +24,7 @@ export async function getUsers(req, res) {
     }
   }
   
+
 
 
   export async function unBlockUser(req, res) {

@@ -57,45 +57,6 @@ export async function getAllDepartments(req, res) {
     }
 }
 
-export async function getAllDoctors(req, res) {
-    try {
-        const name = req.query.name ?? "";
-        const department = req.query.department ?? "";
-        const hospital = req.query.hospital ?? "";
-        const sort = req.query.sort ?? "";
-        const sortValue = parseInt(sort);
-        let doctors = []
-        if (sortValue) {
-            if (hospital) {
-                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department, hospitalId: hospital }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: sortValue }).lean()
-            }
-            else if (department) {
-                doctors = await DoctorModel.find({block:false,$or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: sortValue }).lean()
-            }
-            else {
-                doctors = await DoctorModel.find({block:false, $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }] }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: sortValue }).lean()
-            }
-        } else {
-            if (hospital) {
-                doctors = await DoctorModel.find({block:false, $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department, hospitalId: hospital }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').lean()
-            }
-            else if (department) {
-                doctors = await DoctorModel.find({block:false ,$or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').lean()
-            }
-            else {
-                doctors = await DoctorModel.find({ block:false,$or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }] }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').lean()
-            }
-        }
-        
-        
-        res.json({err:false, doctors })
-
-    } catch (err) {
-        console.log(err)
-        res.json({ err: true, error: err })
-    }
-}
-
 export async function getAllHospitals(req, res) {
     try {
         const name = req.query.name ?? "";
@@ -103,13 +64,78 @@ export async function getAllHospitals(req, res) {
         let hospitals = []
         if (departmentId) {
             let department = await DepartmentModel.findOne({ _id: departmentId });
-            hospitals = await HospitalModel.find({ block: false, rejected: false,active:true,name: new RegExp(name, 'i'), _id: { $in: department.hospitalId } }, { password: 0 }).lean()
+            hospitals = await HospitalModel.find({ name: new RegExp(name, 'i'), _id: { $in: department.hospitalId } }, { password: 0 }).lean()
         } else {
-            hospitals = await HospitalModel.find({block: false, rejected: false, active:true,name: new RegExp(name, 'i') }, { password: 0 }).lean()
+            hospitals = await HospitalModel.find({ name: new RegExp(name, 'i') }, { password: 0 }).lean()
         }
-       
+        const ratingData = await FeedbackModel.aggregate([
+            {
+                $group:{
+                    _id:"$hospitalId",
+                    rating:{$avg:"$rating"}
+                }
+            }
+        ])
 
-        res.json({ err:false, hospitals })
+        const rating = {}
+
+        ratingData.map((item)=>{
+            if(item._id!==null){
+                rating[item._id.valueOf()]=item.rating
+            }
+        })
+
+        res.json({ err:false, hospitals, rating })
+    } catch (err) {
+        console.log(err)
+        res.json({ err: true, error: err })
+    }
+}
+
+export async function getAllDoctors(req, res) {
+    try {
+        const name = req.query.name ?? "";
+        const department = req.query.department ?? "";
+        const hospital = req.query.hospital ?? "";
+        const sort = req.query.sort ?? "";
+        let doctors = []
+        if (sort) {
+            if (hospital) {
+                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department, hospitalId: hospital }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: sort }).lean()
+            }
+            else if (department) {
+                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: sort }).lean()
+            }
+            else {
+                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }] }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: sort }).lean()
+            }
+        } else {
+            if (hospital) {
+                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department, hospitalId: hospital }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').lean()
+            }
+            else if (department) {
+                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').lean()
+            }
+            else {
+                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }] }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').lean()
+            }
+        }
+        const ratingData = await FeedbackModel.aggregate([
+            {
+                $group:{
+                    _id:"$doctorId",
+                    rating:{$avg:"$rating"}
+                }
+            }
+        ])
+        const rating = {}
+        ratingData.map((item)=>{
+            if(item._id!==null){
+                rating[item._id.valueOf()]=item.rating
+            }
+        })
+        res.json({err:false, doctors, rating })
+
     } catch (err) {
         console.log(err)
         res.json({ err: true, error: err })
@@ -143,13 +169,32 @@ export async function getDoctorSchedule(req, res) {
 
 export async function getHospital(req, res) {
     try {
-        
+        const booking = await BookingModel.findOne({
+            userId: req.user._id,
+            hospitalId: req.params.id
+        })
+        let totalRating = 0;
 
-        
+        const reviews = await FeedbackModel.find({
+            hospitalId: req.params.id
+        }).populate('userId').lean()
+
+        const review = await FeedbackModel.findOne({
+            hospitalId: req.params.id,
+            userId: req.user._id
+        }).lean()
+
+        for (let item of reviews) {
+            totalRating += item.rating
+        }
+        let reviewCount = reviews.length != 0 ? reviews.length : 1;
+        const rating = totalRating / reviewCount;
         const hospital = await HospitalModel.findById(req.params.id, { password: 0 });
         const departments = await DepartmentModel.find({ hospitalId: hospital._id }, { password: 0 });
         res.json({
-            err: false, hospital, departments
+            err: false, hospital, departments,
+            reviewAccess: booking ? true : false,
+            rating, reviews, review
         })
 
     } catch (err) {

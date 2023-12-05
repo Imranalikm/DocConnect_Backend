@@ -105,7 +105,7 @@ export async function addDepartment(req, res) {
             const data = await cloudinary.uploader.upload(base64Picture, {
                 folder: 'docConnect'
             });
-            console.log('Cloudinary Upload Result:', data);
+           
 
             await DepartmentModel.updateOne(
                 { name: req.body.department.trim() },

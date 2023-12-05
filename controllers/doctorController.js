@@ -4,7 +4,7 @@ import BookingModel from '../models/BookingModel.js';
 import EMRModel from '../models/EMRModel.js'
 import HospitalModel from '../models/HospitalModel.js'
 import ScheduleModel from '../models/ScheduleModel.js';
-
+import sentMail from '../helpers/sentMail.js';
 export async function editDoctorProfile(req, res){
     try{
         const {image}= req.body;
@@ -113,7 +113,7 @@ export async function getDoctorTodayBookings(req, res){
                 {date: {$lt: new Date(new Date(new Date().setHours(0,0,0,0)).setDate(new Date().getDate()+1))}},
                 {doctorId:req.doctor._id}
              ]
-        }).sort({ _id:-1})
+        }).sort({ _id:-1}).populate('userId')
         return res.json({err:false, bookings})
 
     }catch(error){
@@ -145,3 +145,20 @@ export async function getDoctorSchedule(req, res) {
         res.json({ err: true, error: err, message: "Something Went Wrong" })
     }
 }
+
+export async function SendVideoInvite(req,res){
+    try{
+         const email =  req?.body?.userEmail;
+         const roomID= req?.body?.roomID;
+         const doctor =req?.body?.doctorName;
+         await sentMail(
+            email,
+            `Your Appointment with ${doctor} is ready`,
+            "Join the Link and Meet the doctor",
+            `http://localhost:3001/videocall/${roomID}`
+          );
+    }catch(err){
+         res.json({ err: true, error: err, message: "Something Went Wrong" })
+    }
+}
+
