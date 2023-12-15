@@ -11,7 +11,10 @@ import {
   updateSchedule,
   getSchedule,
   editHospitalProfile,
-  getHospitalProfile
+  getHospitalProfile,
+  hospitalDashboard,
+  getHospitalComplaints,
+  withdrawWallet
 
 } from "../controllers/hospitalController.js";
 
@@ -31,6 +34,14 @@ Router.get("/doctor/schedule/:doctorId", getSchedule)
 
 Router.patch("/profile", editHospitalProfile)
 Router.get("/profile", getHospitalProfile)
+
+Router.get("/dashboard", hospitalDashboard)
+
+Router.get('/complaints', getHospitalComplaints)
+
+
+
+Router.post("/withdraw", withdrawWallet)
 
 
 export default Router

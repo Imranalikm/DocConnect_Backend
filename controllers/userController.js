@@ -8,8 +8,8 @@ import UserModel from '../models/UserModel.js';
 import cloudinary from '../config/cloudinary.js'
 import EMRModel from '../models/EMRModel.js';
 import FeedbackModel from '../models/FeedbackModel.js';
-
-
+import ComplaintModel from '../models/ComplaintModel.js'
+import sentMail from "../helpers/sentMail.js"
 
 
 export async function getDoctor(req, res) {
@@ -98,16 +98,17 @@ export async function getAllDoctors(req, res) {
         const department = req.query.department ?? "";
         const hospital = req.query.hospital ?? "";
         const sort = req.query.sort ?? "";
+        const SortedValue = parseInt(sort)
         let doctors = []
         if (sort) {
             if (hospital) {
-                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department, hospitalId: hospital }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: sort }).lean()
+                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department, hospitalId: hospital }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: SortedValue }).lean()
             }
             else if (department) {
-                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: sort }).lean()
+                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }], department: department }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: SortedValue }).lean()
             }
             else {
-                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }] }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: sort }).lean()
+                doctors = await DoctorModel.find({ $or: [{ name: new RegExp(name, 'i'), }, { tags: new RegExp(name, 'i') }] }, { password: 0 }).populate('hospitalId', 'name').populate('department', 'name').sort({ fees: SortedValue }).lean()
             }
         } else {
             if (hospital) {
@@ -396,6 +397,8 @@ export async function getTop3Doctors(req, res) {
                 rating[item._id.valueOf()]=item.rating
             }
         })
+
+        console.log(doctors)
         return res.json({err:false, doctors, rating})
     } catch (error) {
         console.log(error)
@@ -455,6 +458,68 @@ export async function getTop3Hospitals(req, res) {
         })
         return res.json({err:false, hospitals, rating})
     } catch (error) {
+        console.log(error)
+        res.json({ err: true, message: "something went wrong", error })
+    }
+}
+
+export async function addComplaint(req, res) {
+    try {
+              
+        const { complaintAgainst, type,description } = req.body;
+        let complaint;
+        if (type === 'doctor') {
+            complaint = await ComplaintModel.create({
+                doctorId: complaintAgainst,
+                description,
+                type,
+                userId: req.user._id
+            })
+        }
+        else {
+            complaint = await ComplaintModel.create({
+                hospitalId: complaintAgainst,
+                description,
+                type,
+                userId: req.user._id
+            })
+        }
+        await sentMail(req.user.email,
+            'Your Complaint Against the ' + type + " is Registered",
+            'Your complaint id is ' + complaint.complaintId + '. We will contact you later'
+        )
+        res.json(
+            {
+                err: false, complaint
+            }
+        )
+
+    } catch (error) {
+        console.log(error)
+        res.json({ err: true, message: "something went wrong", error })
+    }
+
+}
+
+export async function resheduleBooking(req,res){
+    try{
+        console.log("hai");
+        const {bookingId,bookDate,bookTimeSlot,online} = req.body;
+        const bookings = await BookingModel.findByIdAndUpdate(
+            bookingId,
+            {
+              date: bookDate,
+              timeSlot: bookTimeSlot,
+              online
+            },
+            { new: true }
+          );
+          res.json({
+            success: true,
+            message: 'Booking rescheduled successfully',
+            bookings,
+          });
+    }catch(error){
         console.log(error)
         res.json({ err: true, message: "something went wrong", error })
     }

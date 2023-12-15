@@ -8,7 +8,7 @@ io.on("connection", (socket) => {
             activeUsers[newUserId] = { userId: newUserId, socketId: socket.id }
             console.log("New User Connected", activeUsers);
         }
-        console.log("active",activeUsers);
+        
         io.emit("get-users", activeUsers);
     });
     socket.on("disconnect", () => {

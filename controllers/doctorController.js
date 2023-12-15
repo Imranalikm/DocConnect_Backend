@@ -5,6 +5,7 @@ import EMRModel from '../models/EMRModel.js'
 import HospitalModel from '../models/HospitalModel.js'
 import ScheduleModel from '../models/ScheduleModel.js';
 import sentMail from '../helpers/sentMail.js';
+import FeedbackModel from '../models/FeedbackModel.js'
 export async function editDoctorProfile(req, res){
     try{
         const {image}= req.body;
@@ -20,16 +21,23 @@ export async function editDoctorProfile(req, res){
     }
 }
 
-export async function getDoctorProfile(req, res){
-    try{
-       
-        res.json({doctor:req.doctor, err:false})
+export async function getDoctorProfile(req, res) {
+    try {
+        const doctorWithHospital = await DoctorModel.findById(req.doctor._id)
+            .populate('hospitalId').populate('department')
+            .lean();
 
-    }catch(error){
+        const reviews = await FeedbackModel.find({
+            doctorId: req.doctor._id
+        }).populate('userId').populate('hospitalId').lean();
+
+        res.json({ doctor: doctorWithHospital, err: false, reviews });
+    } catch (error) {
         console.log(error);
-        req.json({err:true, error, message:"something went wrong"})
+        res.json({ err: true, error, message: "something went wrong" });
     }
 }
+
 
 export async function getDoctorBookings(req, res){
     try{
@@ -81,11 +89,13 @@ export async function addEMR(req, res) {
                 status:'completed'
             }
         })
+        console.log("33333333333333333333333333")
         await HospitalModel.updateOne({_id:req.doctor.hospitalId},{
             $inc:{
-                wallet:doctor.fees
+                wallet:req.doctor.fees
             }
         })
+        console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         res.json({err:false})
         
     } catch (err) {
