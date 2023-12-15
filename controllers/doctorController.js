@@ -165,7 +165,7 @@ export async function SendVideoInvite(req,res){
             email,
             `Your Appointment with ${doctor} is ready`,
             "Join the Link and Meet the doctor",
-            `http://localhost:3001/videocall/${roomID}`
+            `https://docconnect-six.vercel.app/videocall/${roomID}`
           );
     }catch(err){
          res.json({ err: true, error: err, message: "Something Went Wrong" })
