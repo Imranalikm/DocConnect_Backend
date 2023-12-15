@@ -16,6 +16,7 @@ export const createChat = async (req, res) => {
 
 export const userChats = async (req, res) => {
     try {
+        console.log("hai")
         const chat = await ChatModel.find({
             userId: req.params.userId,
         }).populate('doctorId');
