@@ -42,7 +42,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.resolve() + "/public"))
 app.use(
   cors({
-    origin: 'https://docconnect-six.vercel.app',
+    origin: 'http://localhost:3001',
     credentials: true, // Allow sending cookies with the request
   })
 );
