@@ -20,6 +20,11 @@ export async function getDoctor(req, res) {
         })
         let totalRating = 0;
 
+        const chatAccess = await BookingModel.findOne({
+            doctorId: req.params.id,
+            userId: req.user._id
+        })
+
         const reviews = await FeedbackModel.find({
             doctorId: req.params.id
         }).populate('userId').lean()
@@ -38,6 +43,7 @@ export async function getDoctor(req, res) {
         res.json({
             err: false, doctor,
             reviewAccess: booking ? true : false,
+            AccessforChat:chatAccess ? true: false,
             rating, reviews, review
         })
 
