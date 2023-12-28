@@ -282,6 +282,7 @@ export async function googleAuthRedirect(req, res) {
         const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
         const REDIRECT_URI = process.env.SERVER_URL+'/user/auth/google/callback';
         const { code } = req.query;
+        
         const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
             code,
             client_id: CLIENT_ID,
@@ -315,10 +316,12 @@ export async function googleAuthRedirect(req, res) {
 export async function verifyGAuth(req, res) {
     try {
         const token= req.query.token;
+        console.log(token);
         if (!token){
             return res.json({ loggedIn: false, err: true, message: "no token" });
         }
         const verifiedJWT = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        console.log(verifiedJWT)
         if (!verifiedJWT){
             return res.json({ loggedIn: false, err: true, message: "no token" });
         }
