@@ -6,11 +6,58 @@ import BookingModel from "../models/BookingModel.js"
 import DoctorModel from "../models/DoctorModel.js";
 import WithdrawModel from "../models/WithdrawModel.js";
 import Razorpay from 'razorpay'
+import sendAppointmentReminder from "../helpers/sendAppointmentReminder.js"
 
 let instance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
+
+cron.schedule('0 0 0 * * *', async () => {
+  try {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+
+    const startDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      0,
+      0,
+      0
+    );
+    const endDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      23,
+      59,
+      59
+    );
+    const bookings = await BookingModel.find({
+      date: {
+        $gte: startDate,
+        $lt: endDate,
+      },
+    }).populate("userId").populate('doctorId');
+    for (let item of bookings) {
+      console.log(item.date, item.time);
+      let date = new Date(item.date).toLocaleDateString();
+      let time = new Date(item.time).toLocaleTimeString();
+      (async function () {
+        await sendAppointmentReminder(item.userId.email, date, time, item.doctorId.name);
+      })();
+    }
+  } catch (err) {
+    console.log(err);
+  }
+})
+
+
+
+
+
+
 export async function getUsers(req, res) {
     try {
       const name = req.query.name ?? "";
@@ -150,7 +197,7 @@ export async function getUsers(req, res) {
       const totalDoctors = await DoctorModel.find().count();
       const booking = await BookingModel.aggregate([
         {
-          $group: {
+          $group: { 
             _id: "totalBokingDetails",
             totalBooking: { $sum: 1 },
             totalRevenue: { $sum: "$fees" },
