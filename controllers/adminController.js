@@ -7,6 +7,7 @@ import DoctorModel from "../models/DoctorModel.js";
 import WithdrawModel from "../models/WithdrawModel.js";
 import Razorpay from 'razorpay'
 import sendAppointmentReminder from "../helpers/sendAppointmentReminder.js"
+import cron from "node-cron";
 
 let instance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
