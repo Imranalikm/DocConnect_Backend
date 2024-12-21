@@ -30,7 +30,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: { 
-    origin: ["https://docconnect-six.vercel.app","http://localhost:3001"],  
+    origin: '*'
   },
 });
 let activeUsers={}
@@ -42,7 +42,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.resolve() + "/public"))
 app.use(
   cors({
-    origin: ["https://docconnect-six.vercel.app","http://localhost:3001"],
+    origin: '*',
     credentials: true, // Allow sending cookies with the request
   })
 );
