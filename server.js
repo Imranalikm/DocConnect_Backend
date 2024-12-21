@@ -41,6 +41,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.resolve() + "/public"));
 
+app.options("*", cors());
 // Updated CORS middleware
 app.use(
   cors({
