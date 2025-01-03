@@ -29,8 +29,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: { 
-    origin: 'https://docconnect-six.vercel.app', // Your frontend's origin
-    credentials: true, // Enable credentials for socket.io
+    origin: process.env.CLIENT_URL , 
+    credentials: true, 
   },
 });
 let activeUsers = {};
@@ -41,23 +41,15 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.resolve() + "/public"));
 
-app.options("*", cors());
-// Updated CORS middleware
+
 app.use(
   cors({
-    origin: 'https://docconnect-six.vercel.app', // Explicitly define frontend's origin
+    origin: process.env.CLIENT_URL , //'https://docconnect-six.vercel.app' Explicitly define frontend's origin
     credentials: true, // Allow sending cookies with the request
   })
 );
 
-// Manually set CORS headers
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://docconnect-six.vercel.app');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  next();
-});
+
 
 dbConnect();
 
